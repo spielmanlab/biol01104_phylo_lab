@@ -18,13 +18,14 @@ shinyUI(fluidPage(
         tabPanel("Character Matrix", 
                  br(),
                  div(style = "margin:1em;padding-top:0;font-size:12px;",
-                     msaROutput("primate_msa"))
-                 ),
+                     msaROutput("primate_msa", height="200%")
+                 )
+        ),
         tabPanel("Phylogeny",
                  br(),br(),
                  
                  fluidRow(
-                        style = "max-height: 125vh; overflow-y: auto;" ,
+                        style = "max-height: 75vh; overflow-y: scroll;" ,
                  div(style="display: inline-block;vertical-align:top; width: 150px;",
                      actionButton("update_tree", "Update tree!")
                   ),
@@ -52,7 +53,7 @@ shinyUI(fluidPage(
         ), 
         tabPanel("Character History",
                  br(),br(),
-                numericInput("site", label = "Site to visualize", value = 1, min=1, max = primates_seqlen),
+                numericInput("site", label = "Column in character matrix", value = 1, min=1, max = primates_seqlen),
                 img(src="./dna_legend.png", style="width:150px;", align="center"),
                 plotOutput("treesite", width="90%", height="300px")
                  #div(style = "width:100px",
