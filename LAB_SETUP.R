@@ -1,12 +1,12 @@
-install.packages("shiny")
-install.packages("msaR")
-install.packages("ape")
-install.packages("phangorn")
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("ggplot2")
-install.packages("remotes")
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+all_packages <- c("shiny", 
+                  "msaR", 
+                  "ape", 
+                  "phangorn", 
+                  "dplyr", 
+                  "tidyr", 
+                  "ggplot2", 
+                  "alignfigR")
+                  "BiocManager")
+install.packages(all_packages)
 library(BiocManager)
 BiocManager::install("ggtree", version = "3.8")

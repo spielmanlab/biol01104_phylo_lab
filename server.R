@@ -1,4 +1,3 @@
-options(repos = BiocInstaller::biocinstallRepos())
 library(shiny)
 library(msaR)
 library(ape)
