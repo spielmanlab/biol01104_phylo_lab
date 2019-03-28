@@ -43,7 +43,7 @@ shinyServer(function(input, output) {
   ##################################### MSA ########################################
   ##################################################################################
   output$primate_msa <- renderMsaR({
-    msaR(primate_msa_file, colorscheme = "nucleotide", labelNameLength = 150, labelid = FALSE, overviewbox = FALSE)
+    msaR(primate_msa_file, colorscheme = "nucleotide", labelNameLength = 150, labelid = FALSE, menu = FALSE)
   })
   ##################################################################################
   

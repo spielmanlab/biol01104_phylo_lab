@@ -5,7 +5,7 @@ all_packages <- c("shiny",
                   "dplyr", 
                   "tidyr", 
                   "ggplot2", 
-                  "alignfigR")
+                  "alignfigR",
                   "BiocManager")
 install.packages(all_packages)
 library(BiocManager)
