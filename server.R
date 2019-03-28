@@ -146,10 +146,17 @@ shinyServer(function(input, output) {
     
     primates_ancestors_sequences %>% filter(column==input$site) -> primates_column
     
-    ggtree(primates_parstree_anc, aes(color = character), size=1.25) %<+% primates_column +
-      geom_tiplab(color="black", offset=0.2, size=6) +
-      geom_tippoint(aes(color = character), size=4, shape=15) + 
-      scale_color_manual(values=dna_colors) + xlim_tree(12)
+    if (input$color_branches) {
+        ggtree(primates_parstree_anc, aes(color = character), size=1.25) %<+% primates_column +
+          geom_tiplab(color="black", offset=0.2, size=6) +
+          geom_tippoint(aes(color = character), size=4, shape=15) + 
+          scale_color_manual(values=dna_colors) + xlim_tree(12)
+    } else{
+        ggtree(primates_parstree_anc, size=1.25) %<+% primates_column +
+          geom_tiplab(color="black", offset=0.2, size=6) +
+          geom_tippoint(aes(color = character), size=4, shape=15) + 
+          scale_color_manual(values=dna_colors) + xlim_tree(12)    
+    }
   })
   
   

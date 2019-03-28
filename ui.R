@@ -54,8 +54,9 @@ shinyUI(fluidPage(
         tabPanel("Character History",
                  br(),br(),
                 numericInput("site", label = "Column in character matrix", value = 1, min=1, max = primates_seqlen),
-                img(src="./dna_legend.png", style="width:150px;", align="center"),
-                plotOutput("treesite", width="90%", height="300px")
+                checkboxInput("color_branches", label = "Color branches by inferred ancestry?", value = TRUE),
+                plotOutput("treesite", width="90%", height="300px"),
+                img(src="./dna_legend.png", style="width:150px;", align="center")
                  #div(style = "width:100px",
         )
       )
