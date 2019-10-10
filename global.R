@@ -1,7 +1,5 @@
-library(phangorn)
-library(dplyr)
-library(tidyr)
-library(alignfigR)
+#library(phangorn)
+
 
 
 primate_msa_file     <- "data/primate-mtDNA.fasta"
