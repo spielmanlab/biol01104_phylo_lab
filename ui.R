@@ -29,9 +29,9 @@ shinyUI(fluidPage(
                  div(style="display: inline-block;vertical-align:top; width: 150px;",
                      actionButton("update_tree", "Update tree!")
                   ),
-                 div(style="display: inline-block;vertical-align:top; width: 200px;",
-                     radioButtons("update_tree_type", "How to update tree?", choices=c("New random tree", "Move one branch only"))
-                  ),
+                 #div(style="display: inline-block;vertical-align:top; width: 200px;",
+                 #    radioButtons("update_tree_type", "How to update tree?", choices=c("New random tree", "Move one branch only"))
+                 # ),
                  div(style="display: inline-block;vertical-align:top; width: 225px;",
                      checkboxInput("force_improvement", label = "Force tree improvement", value = FALSE)
                   ),
@@ -48,7 +48,7 @@ shinyUI(fluidPage(
                      selectInput("outgroup_parsimony", "Select outgroup:", primates_names, selected = "Ring-tailed_lemur")
                   ),  
                  br(),
-                 plotOutput("parsimony_tree")
+                 plotOutput("parsimony_tree", width="50%")
                 )
         ), 
         tabPanel("Character History",

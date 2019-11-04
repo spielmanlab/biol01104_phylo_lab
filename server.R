@@ -60,21 +60,21 @@ shinyServer(function(input, output) {
 
   
   current_tree <- eventReactive(input$update_tree, {
-    update_tree_type <- isolate(input$update_tree_type)
     force_improvement <- isolate(input$force_improvement)
 
-    if (update_tree_type == "New random tree")      new_tree <- ape::as.phylo(ape::rtree(primates_ntaxa, primates_names, rooted = TRUE))  
-    if (update_tree_type == "Move one branch only") 
-    {
+    if (input$update_tree == 1){
+        new_tree <- ape::as.phylo(ape::rtree(primates_ntaxa, primates_names, rooted = TRUE))  
+    } else{ 
         all_nni <- phangorn::nni(last_tree())
         new_tree <- ape::as.phylo( all_nni[[ sample(1:length(all_nni), 1) ]] )
     }
+
     new_pscore <- phangorn::fitch(new_tree, primates_phydat)   
     
     first_search_title         <- paste0("Initial Tree.\nScore:",new_pscore, "\n")
-    improved_title             <- paste0("Search #", input$update_tree,": Tree improved from last search!\nScore:",new_pscore, "\n")
-    not_improved_title_force   <- paste0("Search #", input$update_tree,": Tree not improved from last search.\nScore:",last_pscore(), "\n")
-    not_improved_title_noforce <- paste0("Search #", input$update_tree,": Tree not improved from last search.\nScore:",new_pscore, "\n")
+    improved_title             <- paste0("Search #", input$update_tree,": Tree improved from last search!!\nScore:",new_pscore, "\n")
+    not_improved_title_force   <- paste0("Search #", input$update_tree,": Tree NOT improved from last search.\nScore:",last_pscore(), "\n")
+    not_improved_title_noforce <- paste0("Search #", input$update_tree,": Tree NOT improved from last search.\nScore:",new_pscore, "\n")
 
     
     if (is.null(best_tree()) | new_pscore < best_pscore())
