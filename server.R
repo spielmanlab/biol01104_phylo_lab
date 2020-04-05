@@ -8,23 +8,27 @@ library(tidyr)
 library(ggplot2)
 library(alignfigR)
 
-dna_colors <- c("A"="dodgerblue", "C"="red", "G"="forestgreen", "T"="gold", "-" = "grey85")
-
+dna_colors <- c("A"="#A2FA8C", "C"="#FCCE8A", "G"="#F38D8A", "T"="#8AB8F5", "-" = "grey85")
+outgroup <- "Ring-tailed_lemur"
 
 ######################### Parsimony for Phylogeny panel ############################
-pars_choice <- sample(1:2,1)  ### There are two most parsimonious trees. Students will randomly get one or the other (for some reason phangorn only ever gives one, need to understand phangorn better and then can estimate parsimony here.)
-primates_pars_file   <- paste0("data/primates_parsimony_tree_rooted_v", pars_choice, ".tre")
+#pars_choice <- sample(1:2,1)  ### There are two most parsimonious trees. Students will randomly get one or the other (for some reason phangorn only ever gives one, need to understand phangorn better and then can estimate parsimony here.)
+primates_pars_file1   <- paste0("data/primates_parsimony_tree_rooted_v1.tre")
+primates_pars_file2   <- paste0("data/primates_parsimony_tree_rooted_v2.tre")
 
-primates_parstree <- ape::read.tree(primates_pars_file)
-primates_parstree_rooted <- ape::root(primates_parstree, outgroup = "Ring-tailed_lemur", resolve.root=TRUE)
-primates_pscore          <- phangorn::fitch(primates_parstree, primates_phydat)
+primates_parstree1 <- ape::read.tree(primates_pars_file1)
+primates_parstree1_rooted <- ape::root(primates_parstree1, outgroup = outgroup, resolve.root=TRUE)
+primates_parstree2 <- ape::read.tree(primates_pars_file2)
+primates_parstree2_rooted <- ape::root(primates_parstree2, outgroup = outgroup, resolve.root=TRUE)
+
+primates_pscore          <- phangorn::fitch(primates_parstree1, primates_phydat)
 ##################################################################################
 
 
 ################################# Ancestral panel ####################################
 primates_pars_file_anc   <- "data/primates_parsimony_tree_labeled.tre"
 primates_parstree_anc    <- ape::read.tree(primates_pars_file_anc)
-primates_parstree_rooted <- ape::root(primates_parstree_anc, outgroup = "Ring-tailed_lemur", resolve.root=TRUE)
+primates_parstree_rooted <- ape::root(primates_parstree_anc, outgroup = outgroup, resolve.root=TRUE)
 
 primate_msa_file_anc              <- "data/primates_ancestors_alignment.fasta"
 primates_alignment_with_ancestors <- alignfigR::read_alignment(primate_msa_file_anc)
@@ -37,15 +41,16 @@ as_tibble(primates_alignment_with_ancestors) %>%
 
 
 
-
-
 shinyServer(function(input, output) {
    
   ##################################################################################
   ##################################### MSA ########################################
   ##################################################################################
-  output$primate_msa <- renderMsaR({
+  output$primate_msa1 <- renderMsaR({
     msaR(primate_msa_file, colorscheme = "nucleotide", labelNameLength = 150, labelid = FALSE, menu = FALSE)
+  })
+  output$primate_msa2 <- renderMsaR({
+    msaR(primate_msa_file, colorscheme = "nucleotide", overviewbox = FALSE, labelNameLength = 150, labelid = FALSE, menu = FALSE)
   })
   ##################################################################################
   
@@ -60,22 +65,30 @@ shinyServer(function(input, output) {
 
   
   current_tree <- eventReactive(input$update_tree, {
-    force_improvement <- isolate(input$force_improvement)
-
+    search_type <- isolate(input$search_type)
     if (input$update_tree == 1){
         new_tree <- ape::as.phylo(ape::rtree(primates_ntaxa, primates_names, rooted = TRUE))  
-    } else{ 
-        all_nni <- phangorn::nni(last_tree())
+    } else
+    { 
+        if (search_type == "best"){
+            all_nni <- phangorn::nni(best_tree())
+        } else {
+            all_nni <- phangorn::nni(last_tree())
+        }
         new_tree <- ape::as.phylo( all_nni[[ sample(1:length(all_nni), 1) ]] )
     }
 
     new_pscore <- phangorn::fitch(new_tree, primates_phydat)   
     
-    first_search_title         <- paste0("Initial Tree.\nScore:",new_pscore, "\n")
-    improved_title             <- paste0("Search #", input$update_tree,": Tree improved from last search!!\nScore:",new_pscore, "\n")
-    not_improved_title_force   <- paste0("Search #", input$update_tree,": Tree NOT improved from last search.\nScore:",last_pscore(), "\n")
-    not_improved_title_noforce <- paste0("Search #", input$update_tree,": Tree NOT improved from last search.\nScore:",new_pscore, "\n")
 
+    outmain <- paste0("Search #", input$update_tree,":",new_pscore, "\n")
+    if (new_pscore < best_pscore()) {
+         outmain <- paste0(outmain,"New best tree!")
+    } else if (new_pscore > best_pscore()){
+         outmain <- paste0(outmain,"Worse than best.")
+    }  else {
+        outmain <- paste0(outmain,"Same as best.")
+    }
     
     if (is.null(best_tree()) | new_pscore < best_pscore())
     {
@@ -83,31 +96,12 @@ shinyServer(function(input, output) {
         best_tree(new_tree)
     }
 
-    if (force_improvement)
-    {   
-        if (new_pscore < last_pscore()) {
-            ### Force: Tree improved
-            out <- list("tree" = new_tree, "pscore" = new_pscore, "main" = improved_title)
-            last_tree(new_tree)
-            last_pscore(new_pscore)
-        } else 
-        {   ### Force: Tree not improved
-            out <- list("tree" = last_tree(), "pscore" = last_pscore(), "main" = not_improved_title_force)
-        }
-    } else
-    {
-        if (new_pscore < last_pscore()) 
-        {
-            outmain <- improved_title
-        } else {
-            outmain <- not_improved_title_noforce
-        }  
-        last_tree(new_tree)
-        last_pscore(new_pscore) 
-        out <- list("tree" = new_tree, "pscore" = new_pscore, "main" = outmain)
-    }
+    last_tree(new_tree)
+    last_pscore(new_pscore) 
+    out <- list("tree" = new_tree, "pscore" = new_pscore, "main" = outmain)
+
     if (input$update_tree == 1){
-        out$main <- first_search_title
+        out$main <- paste0("Score:",new_pscore, "\nInitial Tree")
     }
     out
   })
@@ -119,23 +113,23 @@ shinyServer(function(input, output) {
     par(mfrow=c(1,2))
     
     tr <- current_tree()$tree
-    tr <- ape::chronos( ape::root(tr, outgroup = input$outgroup_random, resolve.root=TRUE) )
+    tr <- ape::chronos( ape::root(tr, outgroup = outgroup, resolve.root=TRUE) )
     plot(tr, font=2, cex=1.25, edge.width=1.75, main = current_tree()$main, cex.main=1.5)
 
-    best_tr <- ape::chronos( ape::root(best_tree(), outgroup = input$outgroup_random, resolve.root=TRUE))
-    plot(best_tr, font=2, cex=1.25, edge.width=1.75, main = paste("Best Tree Found.\nScore:", best_pscore(), "\n"), cex.main=1.5)
+    best_tr <- ape::chronos( ape::root(best_tree(), outgroup = outgroup, resolve.root=TRUE))
+    plot(best_tr, font=2, cex=1.25, edge.width=1.75, main = paste("Score:", best_pscore(), "\nBest Tree Found"), cex.main=1.5)
     
   }) 
   
-  observeEvent(input$reveal_parsimony, {
+  #observeEvent(input$reveal_parsimony, {
     output$parsimony_tree <- renderPlot({
       
-      primates_parstree_rooted <- ape::root(primates_parstree, outgroup = input$outgroup_parsimony, resolve.root=TRUE)
-      
-      plot(primates_parstree_rooted, cex=1.5, font=2, edge.width=2, main = paste("Most parsimonious tree. Score:", primates_pscore), cex.main=1.5)
+      par(mfrow=c(1,2))      
+      plot(primates_parstree1_rooted, cex=1.5, font=2, edge.width=2, main = paste("Most parsimonious tree. Score:", primates_pscore), cex.main=1.5)
+      plot(primates_parstree2_rooted, cex=1.5, font=2, edge.width=2, main = paste("Most parsimonious tree. Score:", primates_pscore), cex.main=1.5)
   
     }) 
-  })
+ # })
   ##################################################################################
   
 
@@ -147,18 +141,20 @@ shinyServer(function(input, output) {
   output$treesite <- renderPlot({
     
     primates_ancestors_sequences %>% filter(column==input$site) -> primates_column
+    ggtree(primates_parstree_anc, size=1.5) %<+% primates_column +
+          geom_tiplab(color="black", offset=0.2, size=10) +
+          geom_tippoint(aes(fill = character), color = "black", size=10, shape=22) + 
+          scale_fill_manual(values=dna_colors) + 
+          guides(fill=FALSE) + 
+          xlim_tree(15) -> primate_ggtree
     
     if (input$color_branches) {
-        ggtree(primates_parstree_anc, aes(color = character), size=1.25) %<+% primates_column +
-          geom_tiplab(color="black", offset=0.2, size=6) +
-          geom_tippoint(aes(color = character), size=4, shape=15) + 
-          scale_color_manual(values=dna_colors) + xlim_tree(12)
-    } else{
-        ggtree(primates_parstree_anc, size=1.25) %<+% primates_column +
-          geom_tiplab(color="black", offset=0.2, size=6) +
-          geom_tippoint(aes(color = character), size=4, shape=15) + 
-          scale_color_manual(values=dna_colors) + xlim_tree(12)    
-    }
+        primate_ggtree <- primate_ggtree + 
+                            aes(color = character) + 
+                            scale_color_manual(values=dna_colors) + 
+                            guides(color = FALSE)
+    } 
+    primate_ggtree
   })
   
   

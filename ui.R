@@ -15,49 +15,38 @@ shinyUI(fluidPage(
 
     fixedPanel(width = "75%", right = "15%", left="15%",
       tabsetPanel(
-        tabPanel("Character Matrix", 
-                 br(),
-                 div(style = "margin:1em;padding-top:0;font-size:12px;",
-                     msaROutput("primate_msa", height="200%")
-                 )
+        tabPanel("Multiple sequence alignment",
+            msaROutput("primate_msa1")
         ),
-        tabPanel("Phylogeny",
+      
+        tabPanel("Search for the most parsimonious phylogeny",
                  br(),br(),
                  
                  fluidRow(
-                        style = "max-height: 75vh; overflow-y: scroll;" ,
-                 div(style="display: inline-block;vertical-align:top; width: 150px;",
-                     actionButton("update_tree", "Update tree!")
-                  ),
-                 #div(style="display: inline-block;vertical-align:top; width: 200px;",
-                 #    radioButtons("update_tree_type", "How to update tree?", choices=c("New random tree", "Move one branch only"))
-                 # ),
-                 div(style="display: inline-block;vertical-align:top; width: 225px;",
-                     checkboxInput("force_improvement", label = "Force tree improvement", value = FALSE)
-                  ),
-                 div(style="display: inline-block;vertical-align:top; width: 300px;",
-                     selectInput("outgroup_random", "Select outgroup:", primates_names, selected = "Ring-tailed_lemur")
-                  ),     
-                br(),br(),               
-                 plotOutput("tree_finding"),
-                 
-                 div(style="display: inline-block;vertical-align:top; width: 300px;",
-                     actionButton("reveal_parsimony", "Reveal the most parsimonious tree")
-                  ),
-                 div(style="display: inline-block;vertical-align:top; width: 200px;",
-                     selectInput("outgroup_parsimony", "Select outgroup:", primates_names, selected = "Ring-tailed_lemur")
-                  ),  
-                 br(),
-                 plotOutput("parsimony_tree", width="50%")
+                    style = "max-height:80vh; overflow-y: scroll;" ,
+                    actionButton("update_tree", "Search for another tree"),
+                    radioButtons("search_type", "How to search for a new tree?",
+                                        c("Search from last tree found" = "last",
+                                          "Search from best tree found" = "best")),
+                    br(),br(),               
+                 plotOutput("tree_finding", height = "500px")
                 )
+            ),
+        tabPanel("Reveal the most parsimonious phylogeny!",
+                 br(),
+                 plotOutput("parsimony_tree")
         ), 
-        tabPanel("Character History",
-                 br(),br(),
+        tabPanel("Ancestral state reconstruction",
+        fluidRow(
+                    style = "max-height:80vh; overflow-y: scroll;" ,
+                msaROutput("primate_msa2"),
                 numericInput("site", label = "Column in character matrix", value = 1, min=1, max = primates_seqlen),
                 checkboxInput("color_branches", label = "Color branches by inferred ancestry?", value = FALSE),
-                plotOutput("treesite", width="90%", height="300px"),
-                img(src="./dna_legend.png", style="width:150px;", align="center")
-                 #div(style = "width:100px",
+                plotOutput("treesite", width="60%", height="400px"),
+                img(src="./dna_legend.png", style="width:200px;", align="left") 
+        ) 
+                              
+
         )
       )
     )
