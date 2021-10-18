@@ -6,7 +6,6 @@ library(ggtree)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(alignfigR)
 
 dna_colors <- c("A"="#A2FA8C", "C"="#FCCE8A", "G"="#F38D8A", "T"="#8AB8F5", "-" = "grey85")
 outgroup <- "Ring-tailed_lemur"
@@ -31,7 +30,7 @@ primates_parstree_anc    <- ape::read.tree(primates_pars_file_anc)
 primates_parstree_rooted <- ape::root(primates_parstree_anc, outgroup = outgroup, resolve.root=TRUE)
 
 primate_msa_file_anc              <- "data/primates_ancestors_alignment.fasta"
-primates_alignment_with_ancestors <- alignfigR::read_alignment(primate_msa_file_anc)
+primates_alignment_with_ancestors <- read_alignment(primate_msa_file_anc)
 as_tibble(primates_alignment_with_ancestors) %>% 
   mutate(column=1:n()) %>% 
   gather(taxa, character, `Ring-tailed_lemur`:N11) %>%
@@ -142,17 +141,17 @@ shinyServer(function(input, output) {
     
     primates_ancestors_sequences %>% filter(column==input$site) -> primates_column
     ggtree(primates_parstree_anc, size=1.5) %<+% primates_column +
-          geom_tiplab(color="black", offset=0.2, size=10) +
-          geom_tippoint(aes(fill = character), color = "black", size=10, shape=22) + 
+          geom_tiplab(color="black", offset=0.3, size=8) +
+          geom_tippoint(aes(fill = character), color = "black", size=8, shape=22) + 
           scale_fill_manual(values=dna_colors) + 
-          guides(fill=FALSE) + 
+          guides(fill="none") + 
           xlim_tree(15) -> primate_ggtree
     
     if (input$color_branches) {
         primate_ggtree <- primate_ggtree + 
                             aes(color = character) + 
                             scale_color_manual(values=dna_colors) + 
-                            guides(color = FALSE)
+                            guides(color = "none")
     } 
     primate_ggtree
   })
